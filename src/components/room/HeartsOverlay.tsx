@@ -6,14 +6,25 @@ export function HeartsOverlay({ hearts }: { hearts: HeartT[] }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-30 overflow-hidden" aria-hidden>
       {hearts.map((h) => (
-        <Heart
+        <div
           key={h.id}
           className={cn(
-            "absolute bottom-24 animate-float-up drop-shadow-[0_0_12px_var(--rose)]",
-            h.mine ? "fill-primary text-primary" : "fill-candle text-candle",
+            "absolute bottom-24 flex items-center justify-center animate-float-up drop-shadow-[0_0_16px_var(--rose)]",
+            h.mine ? "text-primary" : "text-candle",
           )}
-          style={{ left: `${h.x}%`, width: 28 + (h.x % 18), height: 28 + (h.x % 18) }}
-        />
+          style={{ left: `${h.x}%` }}
+        >
+          {h.emoji ? (
+            <span className="select-none" style={{ fontSize: `${30 + (h.x % 16)}px` }}>
+              {h.emoji}
+            </span>
+          ) : (
+            <Heart
+              className="fill-current"
+              style={{ width: 28 + (h.x % 18), height: 28 + (h.x % 18) }}
+            />
+          )}
+        </div>
       ))}
     </div>
   );

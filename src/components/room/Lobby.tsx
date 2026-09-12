@@ -8,7 +8,12 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   code: string;
-  onJoin: (opts: { name: string; stream: MediaStream | null; micOn: boolean; camOn: boolean }) => void;
+  onJoin: (opts: {
+    name: string;
+    stream: MediaStream | null;
+    micOn: boolean;
+    camOn: boolean;
+  }) => void;
 };
 
 export function Lobby({ code, onJoin }: Props) {
@@ -147,7 +152,8 @@ export function Lobby({ code, onJoin }: Props) {
               {prettyRoomCode(code)}
             </h1>
             <p className="mt-3 text-sm text-muted-foreground">
-              Private, direct connection between your two devices. No accounts, no time limit, nothing recorded.
+              Private, direct connection between your two devices. No accounts, no time limit,
+              nothing recorded.
             </p>
           </div>
 

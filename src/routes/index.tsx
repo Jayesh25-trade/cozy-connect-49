@@ -33,12 +33,36 @@ export const Route = createFileRoute("/")({
 });
 
 const FEATURES = [
-  { Icon: LockKeyhole, title: "Truly private", text: "Direct device-to-device connection. No servers keep your video, chat or notes." },
-  { Icon: InfinityIcon, title: "No time limit", text: "Talk for 5 minutes or 5 hours. Nothing cuts you off. Free forever." },
-  { Icon: Video, title: "HD video & voice", text: "Crisp video, clear audio with echo and noise cleanup built in." },
-  { Icon: MessageCircleHeart, title: "Sweet little chat", text: "Text while you talk, send floating hearts, quick love notes." },
-  { Icon: MonitorUp, title: "Screen share", text: "Watch things together, show her that photo, plan a trip side by side." },
-  { Icon: NotebookPen, title: "Shared notepad", text: "A live notepad you both type in — movie lists, dreams, inside jokes." },
+  {
+    Icon: LockKeyhole,
+    title: "Truly private",
+    text: "Direct device-to-device connection. No servers keep your video, chat or notes.",
+  },
+  {
+    Icon: InfinityIcon,
+    title: "No time limit",
+    text: "Talk for 5 minutes or 5 hours. Nothing cuts you off. Free forever.",
+  },
+  {
+    Icon: Video,
+    title: "HD video & voice",
+    text: "Crisp video, clear audio with echo and noise cleanup built in.",
+  },
+  {
+    Icon: MessageCircleHeart,
+    title: "Sweet little chat",
+    text: "Text while you talk, send floating hearts, quick love notes.",
+  },
+  {
+    Icon: MonitorUp,
+    title: "Screen share",
+    text: "Watch things together, show her that photo, plan a trip side by side.",
+  },
+  {
+    Icon: NotebookPen,
+    title: "Shared notepad",
+    text: "A live notepad you both type in — movie lists, dreams, inside jokes.",
+  },
 ];
 
 function Index() {
@@ -70,10 +94,12 @@ function Index() {
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-16 pt-6 lg:grid-cols-[1.1fr_0.9fr] lg:pt-12">
         <div>
           <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground">
-            <span className="size-1.5 rounded-full bg-success" /> Your own little corner of the internet
+            <span className="size-1.5 rounded-full bg-success" /> Your own little corner of the
+            internet
           </p>
           <h1 className="font-display text-5xl leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
-            Video calls that feel like <span className="text-gradient-warm italic">being together.</span>
+            Video calls that feel like{" "}
+            <span className="text-gradient-warm italic">being together.</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg text-muted-foreground">
             A cozy private room built for two. No accounts, no 40-minute cutoffs, no one in between.
@@ -97,14 +123,21 @@ function Index() {
                 placeholder="Paste a room link or code"
                 className="w-44 bg-transparent text-sm outline-none placeholder:text-muted-foreground sm:w-52"
               />
-              <Button type="submit" size="icon" variant="secondary" aria-label="Join room" className="h-11 w-11">
+              <Button
+                type="submit"
+                size="icon"
+                variant="secondary"
+                aria-label="Join room"
+                className="h-11 w-11"
+              >
                 <ArrowRight />
               </Button>
             </form>
           </div>
 
           <p className="mt-4 text-xs text-muted-foreground">
-            Works in any modern browser on phone or laptop. She just taps the link — no app to install.
+            Works in any modern browser on phone or laptop. She just taps the link — no app to
+            install.
           </p>
         </div>
 
@@ -135,7 +168,9 @@ function Index() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pb-20">
-        <h2 className="font-display text-3xl sm:text-4xl">Everything you need, nothing you don't.</h2>
+        <h2 className="font-display text-3xl sm:text-4xl">
+          Everything you need, nothing you don't.
+        </h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(({ Icon, title, text }) => (
             <article key={title} className="glass rounded-3xl p-6 transition hover:bg-accent/60">
@@ -152,8 +187,16 @@ function Index() {
       <section className="mx-auto max-w-6xl px-5 pb-20">
         <div className="glass-strong grid gap-6 rounded-[2rem] p-8 sm:grid-cols-3 sm:p-10">
           {[
-            ["1", "Create a room", "One tap. You get a sweet little room name like Moon · Lantern · 42."],
-            ["2", "Send her the link", "Copy it into WhatsApp, iMessage, anywhere. No sign-up on her side."],
+            [
+              "1",
+              "Create a room",
+              "One tap. You get a sweet little room name like Moon · Lantern · 42.",
+            ],
+            [
+              "2",
+              "Send her the link",
+              "Copy it into WhatsApp, iMessage, anywhere. No sign-up on her side.",
+            ],
             ["3", "Be together", "Video, voice, chat, hearts, notes. Stay as long as you like."],
           ].map(([n, t, d]) => (
             <div key={n}>
@@ -166,7 +209,9 @@ function Index() {
       </section>
 
       <footer className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-5 pb-10 text-center text-xs text-muted-foreground">
-        <p>Made with love, for love. Video and messages travel directly between your two devices.</p>
+        <p>
+          Made with love, for love. Video and messages travel directly between your two devices.
+        </p>
       </footer>
     </main>
   );

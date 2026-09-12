@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type Peer from "peerjs";
 import type { DataConnection, MediaConnection } from "peerjs";
+import { playHeartChime } from "@/lib/ambient-sound";
 
 export type CallStatus = "connecting" | "waiting" | "connected" | "ended" | "error";
 
@@ -19,19 +20,23 @@ export type PartnerState = {
   sharing: boolean;
 };
 
-export type Heart = { id: string; x: number; mine: boolean };
+export type Heart = { id: string; x: number; mine: boolean; emoji?: string | undefined };
 
 type Wire =
   | { t: "hello"; name: string; micOn: boolean; camOn: boolean; hasMedia: boolean }
   | { t: "chat"; id: string; text: string; at: number }
   | { t: "notes"; text: string }
-  | { t: "heart" }
+  | { t: "heart"; emoji?: string | undefined }
+  | { t: "ping"; ts: number }
+  | { t: "pong"; ts: number }
   | { t: "state"; micOn: boolean; camOn: boolean; sharing: boolean }
   | { t: "bye" };
 
 const ICE_SERVERS: RTCIceServer[] = [
+  { urls: "stun:stun.cloudflare.com:3478" },
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:19302" },
   {
     urls: "turn:openrelay.metered.ca:80",
     username: "openrelayproject",
@@ -39,11 +44,6 @@ const ICE_SERVERS: RTCIceServer[] = [
   },
   {
     urls: "turn:openrelay.metered.ca:443",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turn:openrelay.metered.ca:443?transport=tcp",
     username: "openrelayproject",
     credential: "openrelayproject",
   },
@@ -72,6 +72,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
   const [hearts, setHearts] = useState<Heart[]>([]);
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(stream);
   const [connectedAt, setConnectedAt] = useState<number | null>(null);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
   const peerRef = useRef<Peer | null>(null);
   const connRef = useRef<DataConnection | null>(null);
@@ -94,8 +95,9 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     }
   }, []);
 
-  const pushHeart = useCallback((mine: boolean) => {
-    const h: Heart = { id: uid(), x: 8 + Math.random() * 84, mine };
+  const pushHeart = useCallback((mine: boolean, emoji?: string) => {
+    playHeartChime();
+    const h: Heart = { id: uid(), x: 8 + Math.random() * 84, mine, ...(emoji ? { emoji } : {}) };
     setHearts((prev) => [...prev.slice(-30), h]);
     setTimeout(() => setHearts((prev) => prev.filter((x) => x.id !== h.id)), 3300);
   }, []);
@@ -105,6 +107,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     let cancelled = false;
     let currentPeer: Peer | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let pingInterval: ReturnType<typeof setInterval> | null = null;
     const hostId = `lovenest-${code}-host`;
 
     const setPeerStatus = (s: CallStatus) => {
@@ -115,10 +118,11 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
       setRemoteStream(null);
       setPartner(null);
       setConnectedAt(null);
+      setLatencyMs(null);
       connRef.current = null;
       callRef.current = null;
+      if (pingInterval) clearInterval(pingInterval);
       if (role === "guest") {
-        // Host left — take over the room so the link keeps working.
         currentPeer?.destroy();
         retryTimer = setTimeout(becomeHost, 1200);
       } else {
@@ -150,14 +154,26 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
         conn.send(msg);
         setPeerStatus("connected");
         setConnectedAt(Date.now());
+
+        if (pingInterval) clearInterval(pingInterval);
+        pingInterval = setInterval(() => {
+          if (connRef.current?.open) {
+            connRef.current.send({ t: "ping", ts: Date.now() });
+          }
+        }, 4000);
       });
+
       conn.on("data", (raw) => {
         const msg = raw as Wire;
         switch (msg.t) {
           case "hello":
-            setPartner({ name: msg.name || "Your love", micOn: msg.micOn, camOn: msg.camOn, sharing: false });
+            setPartner({
+              name: msg.name || "Your love",
+              micOn: msg.micOn,
+              camOn: msg.camOn,
+              sharing: false,
+            });
             setPeerStatus("connected");
-            // If the guest has no camera/mic, the host initiates media so the guest can still see us.
             if (role === "host" && !msg.hasMedia && stream && !callRef.current) {
               attachCall(p.call(conn.peer, stream, { metadata: { name: stateRef.current.name } }));
             }
@@ -172,7 +188,13 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
             setNotesState(msg.text);
             break;
           case "heart":
-            pushHeart(false);
+            pushHeart(false, msg.emoji);
+            break;
+          case "ping":
+            send({ t: "pong", ts: msg.ts });
+            break;
+          case "pong":
+            setLatencyMs(Math.max(1, Date.now() - msg.ts));
             break;
           case "state":
             setPartner((prev) => ({
@@ -198,7 +220,10 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
         if (role === "host") {
           setPeerStatus("waiting");
         } else {
-          const conn = p.connect(hostId, { reliable: true, metadata: { name: stateRef.current.name } });
+          const conn = p.connect(hostId, {
+            reliable: true,
+            metadata: { name: stateRef.current.name },
+          });
           attachData(conn, role, p);
           if (stream) {
             attachCall(p.call(hostId, stream, { metadata: { name: stateRef.current.name } }));
@@ -222,7 +247,12 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
           retryTimer = setTimeout(becomeHost, 800);
           return;
         }
-        if (type === "network" || type === "server-error" || type === "socket-error" || type === "socket-closed") {
+        if (
+          type === "network" ||
+          type === "server-error" ||
+          type === "socket-error" ||
+          type === "socket-closed"
+        ) {
           setError("Couldn't reach the connection service. Check your internet and try again.");
           setPeerStatus("error");
         }
@@ -259,6 +289,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     return () => {
       cancelled = true;
       if (retryTimer) clearTimeout(retryTimer);
+      if (pingInterval) clearInterval(pingInterval);
       try {
         connRef.current?.send({ t: "bye" } satisfies Wire);
       } catch {
@@ -299,9 +330,8 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     screen.getTracks().forEach((t) => t.stop());
     screenStreamRef.current = null;
     const camTrack = stream?.getVideoTracks()[0] ?? null;
-    const sender = callRef.current?.peerConnection
-      ?.getSenders()
-      .find((s) => s.track?.kind === "video" || (!s.track && camTrack));
+    const senders = callRef.current?.peerConnection?.getSenders() ?? [];
+    const sender = senders.find((s) => s.track?.kind === "video" || (!s.track && camTrack));
     if (sender && camTrack) sender.replaceTrack(camTrack).catch(() => {});
     setPreviewStream(stream);
     stateRef.current.sharing = false;
@@ -315,9 +345,11 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     }
     const screen = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
     const track = screen.getVideoTracks()[0];
+    if (!track) return;
     screenStreamRef.current = screen;
     const pc = callRef.current?.peerConnection;
-    const sender = pc?.getSenders().find((s) => s.track?.kind === "video");
+    const senders = pc?.getSenders() ?? [];
+    const sender = senders.find((s) => s.track?.kind === "video");
     if (sender) {
       await sender.replaceTrack(track);
     } else if (pc) {
@@ -350,10 +382,17 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     [send],
   );
 
-  const sendHeart = useCallback(() => {
-    pushHeart(true);
-    send({ t: "heart" });
-  }, [pushHeart, send]);
+  const sendHeart = useCallback(
+    (emoji?: string) => {
+      pushHeart(true, emoji);
+      if (emoji) {
+        send({ t: "heart", emoji });
+      } else {
+        send({ t: "heart" });
+      }
+    },
+    [pushHeart, send],
+  );
 
   const leave = useCallback(() => {
     endedRef.current = true;
@@ -377,6 +416,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     sharing,
     hearts,
     connectedAt,
+    latencyMs,
     toggleMic,
     toggleCam,
     startShare,

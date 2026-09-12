@@ -27,7 +27,7 @@ const WORDS = [
 
 export function generateRoomCode(): string {
   const pick = () => WORDS[Math.floor(Math.random() * WORDS.length)];
-  let a = pick();
+  const a = pick();
   let b = pick();
   while (b === a) b = pick();
   const n = Math.floor(10 + Math.random() * 90);
@@ -55,6 +55,6 @@ export function normalizeRoomCode(input: string): string {
 export function prettyRoomCode(code: string): string {
   return code
     .split("-")
-    .map((p) => (p ? p[0].toUpperCase() + p.slice(1) : p))
+    .map((p) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : p))
     .join(" · ");
 }

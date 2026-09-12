@@ -19,8 +19,10 @@ const buttonVariants = cva(
         glass: "glass text-foreground hover:bg-glass-strong",
         control: "glass text-foreground hover:bg-accent [&_svg]:size-5",
         controlActive: "bg-foreground text-background hover:bg-foreground/90 [&_svg]:size-5",
-        controlOff: "bg-destructive text-destructive-foreground hover:bg-destructive/90 [&_svg]:size-5",
-        controlLove: "bg-warm-gradient text-rose-foreground shadow-glow hover:brightness-110 [&_svg]:size-5",
+        controlOff:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 [&_svg]:size-5",
+        controlLove:
+          "bg-warm-gradient text-rose-foreground shadow-glow hover:brightness-110 [&_svg]:size-5",
       },
       size: {
         default: "h-10 px-5 py-2",

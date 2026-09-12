@@ -1,26 +1,57 @@
-# Cozy Connect
+# 💗 LoveNest (Cozy Connect)
 
-i want to make one syste like google meet fro video chat online for free... unlimited time . can we make it for free to chant with gf .. as i am having some preivacy secure thats why i want to crete that and too much properbles .. make it erpfecct and best so that sjhe can join easliy .. need all basic fetures .. like chat , vieo , audio , screen share , notepad , cozy , romantic , couple vible ,,,,.. best and next gen level edton ..
+> **Free, private, unlimited video calls built for two.**  
+> A cozy online corner to connect, chat, screen share, and take shared notes with your favorite person — anytime, anywhere, with zero time limits and complete privacy.
 
-This project was built with [Lovable](https://lovable.dev).
+---
 
-**Live app**: https://cozy-connect-49.lovable.app
+## ✨ Features
 
-## Build with Lovable
+- 📹 **HD Video & Voice Calls**: Low-latency, crystal-clear WebRTC audio & video with automatic echo cancellation and noise suppression.
+- 🔒 **100% Private & Direct**: Peer-to-peer connection direct between your devices. No sign-up, no passwords, no servers recording your call or messages.
+- ⏳ **Unlimited Duration**: Talk for 5 minutes or 5 hours. No 40-minute cutoffs or hidden fees — free forever.
+- 💬 **Romantic Live Chat & Reactions**: Send instant text messages, quick love notes, and animated floating reactions (❤️ 💖 💋 🔥 🥺 🥂 🎵 🌙 🌹).
+- 📝 **Live Collaborative Notepad**: Write shared movie watchlists, date ideas, or sweet promises live together.
+- 💻 **Screen Sharing**: Watch videos, look at photo memories, or plan trips together with one-click screen sharing.
+- 🕯️ **Cozy Ambiance & Themes**: Candlelight, Moonlight, and Dusk aesthetic dark modes with soothing ambient sounds (Rain, Fireplace, Soft Lofi).
+- 🖼️ **Picture-in-Picture & Layout Controls**: Seamless PiP mode and responsive view swapping for phone or desktop.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/8b517e79-c9ff-4800-bcda-febe21aa33f4).
+---
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+## 🚀 Quick Start
 
-## Development
+### Prerequisites
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+- [Node.js](https://nodejs.org/) (v18+)
+- npm or bun
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+### Local Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Jayesh25-trade/cozy-connect-49.git
+cd cozy-connect-49
+
+# 2. Install dependencies
+npm install
+
+# 3. Start development server
 npm run dev
 ```
+
+Open your browser at `http://localhost:3000` (or the URL shown in terminal).
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend Framework**: [React 19](https://react.dev/) + [TanStack Start](https://tanstack.com/start) / [TanStack Router](https://tanstack.com/router)
+- **Styling & Icons**: [Tailwind CSS v4](https://tailwindcss.com/) + [Lucide Icons](https://lucide.dev/)
+- **Real-Time Mesh**: [PeerJS](https://peerjs.com/) (WebRTC P2P Data & Media Streams)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+
+---
+
+## 💗 License
+
+Distributed under the MIT License. See `LICENSE` for details.

@@ -5,13 +5,13 @@ import { cn } from "@/lib/utils";
 type Props = {
   stream: MediaStream | null;
   name: string;
-  muted?: boolean;
-  mirrored?: boolean;
-  camOn?: boolean;
-  micOn?: boolean;
-  sharing?: boolean;
-  className?: string;
-  size?: "stage" | "pip";
+  muted?: boolean | undefined;
+  mirrored?: boolean | undefined;
+  camOn?: boolean | undefined;
+  micOn?: boolean | undefined;
+  sharing?: boolean | undefined;
+  className?: string | undefined;
+  size?: "stage" | "pip" | undefined;
 };
 
 export function VideoTile({
@@ -64,7 +64,9 @@ export function VideoTile({
             <div
               className={cn(
                 "relative flex items-center justify-center rounded-full bg-warm-gradient font-display text-rose-foreground shadow-glow",
-                size === "stage" ? "h-24 w-24 text-4xl sm:h-32 sm:w-32 sm:text-5xl" : "h-12 w-12 text-xl",
+                size === "stage"
+                  ? "h-24 w-24 text-4xl sm:h-32 sm:w-32 sm:text-5xl"
+                  : "h-12 w-12 text-xl",
               )}
             >
               {initial}

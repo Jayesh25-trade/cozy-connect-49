@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageCircleHeart, NotebookPen, SendHorizonal, X } from "lucide-react";
+import { MessageCircleHeart, NotebookPen, SendHorizonal, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ChatMessage } from "@/hooks/useCoupleCall";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,13 @@ type Props = {
   myName: string;
 };
 
-const QUICK = ["miss you 💗", "you look cute", "hehe", "brb 2 min", "love you ✨"];
+const QUICK = ["miss you 💗", "you look cute", "hehe", "brb 2 min", "love you ✨", "kiss 💋"];
+
+const NOTE_TEMPLATES = [
+  { label: "🎬 Movies", text: "🎬 Movies to Watch Together:\n• \n• \n" },
+  { label: "🍝 Date Ideas", text: "🍝 Romantic Date Ideas:\n• Candlelight dinner\n• Stargazing\n" },
+  { label: "💌 Dreams", text: "💌 Dreams & Goals:\n• \n" },
+];
 
 export function SidePanel({
   open,
@@ -46,6 +52,9 @@ export function SidePanel({
     setDraft("");
   };
 
+  const words = notes.trim() ? notes.trim().split(/\s+/).length : 0;
+  const chars = notes.length;
+
   return (
     <aside
       className={cn(
@@ -62,7 +71,13 @@ export function SidePanel({
         <TabButton active={tab === "notes"} onClick={() => onTabChange("notes")}>
           <NotebookPen /> Our notes
         </TabButton>
-        <Button variant="ghost" size="icon" className="ml-auto" onClick={onClose} aria-label="Close panel">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="ml-auto"
+          onClick={onClose}
+          aria-label="Close panel"
+        >
           <X />
         </Button>
       </header>
@@ -132,16 +147,49 @@ export function SidePanel({
           </form>
         </>
       ) : (
-        <div className="flex flex-1 flex-col p-3">
-          <p className="mb-2 text-xs text-muted-foreground">
-            A shared notepad — plans, movie lists, little promises. Both of you can type; it syncs live.
-          </p>
+        <div className="flex flex-1 flex-col p-3 gap-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              Shared notepad — syncs live between both of you.
+            </p>
+            {notes && (
+              <button
+                onClick={() => onNotesChange("")}
+                className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1"
+                title="Clear notes"
+              >
+                <Trash2 className="size-3" /> Clear
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            {NOTE_TEMPLATES.map((t) => (
+              <button
+                key={t.label}
+                onClick={() => onNotesChange(notes ? `${notes}\n\n${t.text}` : t.text)}
+                className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-xs text-secondary-foreground hover:bg-accent transition"
+              >
+                + {t.label}
+              </button>
+            ))}
+          </div>
+
           <textarea
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
-            placeholder={"🎬 Movies to watch together\n🍝 Date ideas\n💌 Things I want to tell you…"}
+            placeholder={
+              "🎬 Movies to watch together\n🍝 Date ideas\n💌 Things I want to tell you…"
+            }
             className="scrollbar-thin flex-1 resize-none rounded-2xl bg-input/40 p-4 font-sans text-sm leading-relaxed outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
           />
+
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+            <span>Live Sync Active</span>
+            <span>
+              {words} words · {chars} chars
+            </span>
+          </div>
         </div>
       )}
     </aside>
@@ -162,7 +210,9 @@ function TabButton({
       onClick={onClick}
       className={cn(
         "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition [&_svg]:size-4",
-        active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+        active
+          ? "bg-foreground text-background"
+          : "text-muted-foreground hover:bg-accent hover:text-foreground",
       )}
     >
       {children}
