@@ -36,14 +36,24 @@ export function generateRoomCode(): string {
 
 /** Accepts a raw code or a full invite link and returns the clean code. */
 export function normalizeRoomCode(input: string): string {
+  if (!input) return "";
   let s = input.trim();
   try {
     if (/^https?:\/\//i.test(s)) {
       const u = new URL(s);
-      s = u.pathname.split("/").filter(Boolean).pop() ?? "";
+      const queryCode = u.searchParams.get("room") || u.searchParams.get("code");
+      if (queryCode) {
+        s = queryCode;
+      } else {
+        s = u.pathname.split("/").filter(Boolean).pop() ?? "";
+      }
     }
   } catch {
     /* not a URL */
+  }
+  if (s.includes("room=")) {
+    const m = s.match(/room=([a-zA-Z0-9_-]+)/);
+    if (m && m[1]) s = m[1];
   }
   return s
     .toLowerCase()

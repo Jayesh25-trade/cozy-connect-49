@@ -75,8 +75,7 @@ function Index() {
   };
 
   const joinRoom = () => {
-    const code = normalizeRoomCode(joinCode);
-    if (!code) return;
+    const code = normalizeRoomCode(joinCode) || generateRoomCode();
     navigate({ to: "/room/$code", params: { code } });
   };
 

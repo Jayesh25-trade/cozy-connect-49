@@ -94,7 +94,13 @@ export function Lobby({ code, onJoin }: Props) {
 
   const join = () => {
     const n = name.trim() || "Me";
-    window.localStorage.setItem("lovenest-name", n);
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("lovenest-name", n);
+      }
+    } catch {
+      /* ignore storage quota/permission exceptions */
+    }
     onJoin({ name: n, stream, micOn, camOn: camOn && !!stream?.getVideoTracks().length });
   };
 

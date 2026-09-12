@@ -260,7 +260,14 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     const bind = (p: Peer, role: "host" | "guest") => {
       currentPeer = p;
       peerRef.current = p;
+      let connectTimeout: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+        if (!cancelled && !endedRef.current && !connRef.current && role === "host") {
+          setPeerStatus("waiting");
+        }
+      }, 6000);
+
       p.on("open", () => {
+        if (connectTimeout) clearTimeout(connectTimeout);
         retryAttempts = 0;
         if (role === "host") {
           setPeerStatus("waiting");
