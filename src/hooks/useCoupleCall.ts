@@ -301,7 +301,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
           p.destroy();
           if (retryAttempts < MAX_RETRIES) {
             retryAttempts++;
-            const backoff = Math.min(2000 * retryAttempts, 8000);
+            const backoff = Math.min(800 * retryAttempts, 3000);
             retryTimer = setTimeout(becomeHost, backoff);
           } else {
             setError("Partner is not online yet. Share the invite link with her.");
