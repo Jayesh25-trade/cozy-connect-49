@@ -208,29 +208,8 @@ export function Lobby({ code, onJoin }: Props) {
                 }}
                 placeholder="Enter your name"
                 maxLength={24}
-                className="h-13 w-full rounded-2xl border border-primary/30 bg-background/90 pl-11 pr-10 text-base font-medium text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/20"
+                className="h-13 w-full rounded-2xl border border-primary/30 bg-background/90 pl-11 pr-4 text-base font-medium text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/20"
               />
-              {name && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setName("");
-                    try {
-                      if (typeof window !== "undefined") {
-                        window.localStorage.removeItem("lovenest-name");
-                      }
-                    } catch {
-                      // Ignore storage quota/permission exceptions
-                    }
-                  }}
-                  className="absolute right-3.5 text-muted-foreground hover:text-foreground p-1"
-                  aria-label="Clear name"
-                >
-                  <X className="size-4" />
-                </button>
-              )}
             </div>
           </div>
 

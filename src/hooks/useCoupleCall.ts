@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type Peer from "peerjs";
-import type { DataConnection, MediaConnection } from "peerjs";
+import Peer, { type DataConnection, type MediaConnection } from "peerjs";
 import { playHeartChime } from "@/lib/ambient-sound";
 
 export type CallStatus = "connecting" | "waiting" | "connected" | "ended" | "error";
@@ -337,20 +336,16 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
       });
     };
 
-    async function becomeHost() {
-      if (cancelled || endedRef.current) return;
-      const { default: PeerCtor } = await import("peerjs");
+    function becomeHost() {
       if (cancelled || endedRef.current) return;
       setPeerStatus("connecting");
-      bind(new PeerCtor(hostId, { config: { iceServers: ICE_SERVERS } }), "host");
+      bind(new Peer(hostId, { config: { iceServers: ICE_SERVERS } }), "host");
     }
 
-    async function becomeGuest() {
-      if (cancelled || endedRef.current) return;
-      const { default: PeerCtor } = await import("peerjs");
+    function becomeGuest() {
       if (cancelled || endedRef.current) return;
       setPeerStatus("connecting");
-      bind(new PeerCtor({ config: { iceServers: ICE_SERVERS } }), "guest");
+      bind(new Peer({ config: { iceServers: ICE_SERVERS } }), "guest");
     }
 
     becomeHost();
