@@ -160,7 +160,10 @@ export function Lobby({ code, onJoin }: Props) {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="guest-name-input" className="block text-sm font-semibold text-foreground">
+            <label
+              htmlFor="guest-name-input"
+              className="block text-sm font-semibold text-foreground"
+            >
               What should she see you as?
             </label>
             <div className="relative flex items-center">
