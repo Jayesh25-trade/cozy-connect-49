@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
-import { MicOff, VideoOff } from "lucide-react";
+import { MicOff, VideoOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+export type VideoFilter = "none" | "warm-glow" | "vintage" | "noir" | "cyberpunk" | "soft-romance";
+export type VideoSticker = "none" | "heart-glasses" | "sparkles" | "flower-crown" | "cat-ears";
 
 type Props = {
   stream: MediaStream | null;
@@ -12,6 +15,8 @@ type Props = {
   sharing?: boolean | undefined;
   className?: string | undefined;
   size?: "stage" | "pip" | undefined;
+  filter?: VideoFilter | undefined;
+  sticker?: VideoSticker | undefined;
 };
 
 export function VideoTile({
@@ -24,6 +29,8 @@ export function VideoTile({
   sharing,
   className,
   size = "stage",
+  filter = "none",
+  sticker = "none",
 }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -36,6 +43,8 @@ export function VideoTile({
 
   const hasVideo = !!stream && stream.getVideoTracks().length > 0 && camOn;
   const initial = (name || "?").trim().charAt(0).toUpperCase();
+
+  const filterClass = filter !== "none" ? `filter-${filter}` : "";
 
   return (
     <div
@@ -50,12 +59,45 @@ export function VideoTile({
         playsInline
         muted={muted}
         className={cn(
-          "h-full w-full object-cover transition-opacity duration-500",
+          "h-full w-full object-cover transition-all duration-500",
           mirrored && !sharing && "mirror",
           sharing && "object-contain",
           !hasVideo && "opacity-0",
+          filterClass,
         )}
       />
+
+      {/* AR Sticker Overlays */}
+      {hasVideo && sticker !== "none" && (
+        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center overflow-hidden">
+          {sticker === "heart-glasses" && (
+            <div className="absolute top-[28%] flex items-center justify-center gap-6 animate-pulse">
+              <span className="text-5xl sm:text-6xl drop-shadow-[0_0_12px_rgba(244,63,94,0.8)]">
+                🕶️❤️
+              </span>
+            </div>
+          )}
+          {sticker === "sparkles" && (
+            <div className="absolute inset-0 p-4 flex flex-wrap items-center justify-between opacity-80">
+              <Sparkles className="size-8 text-amber-300 animate-twinkle top-4 left-6 absolute" />
+              <Sparkles className="size-10 text-rose-400 animate-twinkle bottom-12 left-10 absolute" />
+              <Sparkles className="size-8 text-pink-300 animate-twinkle top-8 right-8 absolute" />
+              <Sparkles className="size-9 text-yellow-200 animate-twinkle bottom-16 right-12 absolute" />
+            </div>
+          )}
+          {sticker === "flower-crown" && (
+            <div className="absolute top-3 text-3xl sm:text-4xl tracking-widest drop-shadow-md select-none">
+              🌸 🌺 🌼 👑 🌼 🌺 🌸
+            </div>
+          )}
+          {sticker === "cat-ears" && (
+            <div className="absolute top-2 flex w-full justify-between px-8 text-4xl sm:text-5xl select-none">
+              <span className="transform -rotate-12">🐱</span>
+              <span className="transform rotate-12">🐱</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {!hasVideo && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
@@ -89,6 +131,7 @@ export function VideoTile({
         >
           {name}
           {sharing ? " · sharing screen" : ""}
+          {filter !== "none" ? ` · ${filter}` : ""}
         </span>
         <span className="flex gap-1.5">
           {!micOn && (

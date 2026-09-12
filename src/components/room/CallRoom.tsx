@@ -21,8 +21,8 @@ import {
   CloudRain,
   Music,
   PictureInPicture2,
-  Smile,
   Wifi,
+  Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import { useCoupleCall } from "@/hooks/useCoupleCall";
 import { prettyRoomCode } from "@/lib/room-codes";
 import { setAmbientSound, stopAmbientSound, type SoundMode } from "@/lib/ambient-sound";
 import { cn } from "@/lib/utils";
-import { VideoTile } from "./VideoTile";
+import { VideoTile, type VideoFilter, type VideoSticker } from "./VideoTile";
 import { HeartsOverlay } from "./HeartsOverlay";
 import { SidePanel, type PanelTab } from "./SidePanel";
 
@@ -49,6 +49,23 @@ const SOUNDS: { id: SoundMode; label: string; Icon: typeof CloudRain }[] = [
 ];
 
 const EMOJIS = ["❤️", "💖", "💋", "🔥", "🥺", "🥂", "🎵", "🌙", "🌹"];
+
+const FILTERS: { id: VideoFilter; label: string }[] = [
+  { id: "none", label: "Normal 📹" },
+  { id: "warm-glow", label: "Warm Glow 🔥" },
+  { id: "vintage", label: "Vintage 🎞️" },
+  { id: "noir", label: "Noir 🎬" },
+  { id: "cyberpunk", label: "Cyberpunk 🏙️" },
+  { id: "soft-romance", label: "Romance 💖" },
+];
+
+const STICKERS: { id: VideoSticker; label: string }[] = [
+  { id: "none", label: "Off 🚫" },
+  { id: "heart-glasses", label: "Glasses 🕶️" },
+  { id: "sparkles", label: "Sparkles ✨" },
+  { id: "flower-crown", label: "Crown 👑" },
+  { id: "cat-ears", label: "Cat Ears 🐱" },
+];
 
 type Props = {
   code: string;
@@ -71,6 +88,9 @@ export function CallRoom({ code, name, stream, micOn: initialMicOn, camOn: initi
   const [fullscreen, setFullscreen] = useState(false);
   const [swap, setSwap] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filter, setFilter] = useState<VideoFilter>("none");
+  const [sticker, setSticker] = useState<VideoSticker>("none");
   const videoTileRef = useRef<HTMLDivElement>(null);
 
   // Unread badge
@@ -321,6 +341,8 @@ export function CallRoom({ code, name, stream, micOn: initialMicOn, camOn: initi
               camOn={swap ? call.camOn : (call.partner?.camOn ?? true)}
               micOn={swap ? call.micOn : (call.partner?.micOn ?? true)}
               sharing={swap ? call.sharing : (call.partner?.sharing ?? false)}
+              filter={swap ? filter : "none"}
+              sticker={swap ? sticker : "none"}
               className="h-full w-full"
             />
           ) : (
@@ -369,6 +391,8 @@ export function CallRoom({ code, name, stream, micOn: initialMicOn, camOn: initi
                 camOn={swap ? (call.partner?.camOn ?? true) : call.camOn}
                 micOn={swap ? (call.partner?.micOn ?? true) : call.micOn}
                 sharing={swap ? (call.partner?.sharing ?? false) : call.sharing}
+                filter={!swap ? filter : "none"}
+                sticker={!swap ? sticker : "none"}
                 size="pip"
                 className="aspect-[4/3] w-full"
               />
@@ -384,6 +408,8 @@ export function CallRoom({ code, name, stream, micOn: initialMicOn, camOn: initi
                 camOn={call.camOn}
                 micOn={call.micOn}
                 sharing={call.sharing}
+                filter={filter}
+                sticker={sticker}
                 size="pip"
                 className="aspect-[4/3] w-full"
               />
@@ -435,6 +461,68 @@ export function CallRoom({ code, name, stream, micOn: initialMicOn, camOn: initi
           {call.sharing ? <MonitorX /> : <MonitorUp />}
         </Button>
 
+        {/* Video Filters & AR Stickers popover */}
+        <div className="relative">
+          {showFilters && (
+            <div className="glass-strong absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col gap-3 rounded-2xl p-3 shadow-soft min-w-[280px] z-50 animate-in fade-in zoom-in-90 duration-200">
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  🎨 Video Filters
+                </p>
+                <div className="grid grid-cols-3 gap-1">
+                  {FILTERS.map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setFilter(f.id)}
+                      className={cn(
+                        "rounded-xl px-2 py-1.5 text-xs text-center font-medium transition",
+                        filter === f.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary/60 hover:bg-accent text-secondary-foreground",
+                      )}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                  ✨ Fun AR Stickers
+                </p>
+                <div className="grid grid-cols-3 gap-1">
+                  {STICKERS.map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setSticker(s.id)}
+                      className={cn(
+                        "rounded-xl px-2 py-1.5 text-xs text-center font-medium transition",
+                        sticker === s.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary/60 hover:bg-accent text-secondary-foreground",
+                      )}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          <Button
+            variant={filter !== "none" || sticker !== "none" ? "controlActive" : "control"}
+            size="control"
+            onClick={() => {
+              setShowFilters((v) => !v);
+              setShowReactions(false);
+            }}
+            aria-label="Video filters and AR stickers"
+            title="Video filters & AR stickers"
+          >
+            <Wand2 />
+          </Button>
+        </div>
+
         {/* Heart / Emoji reaction button & popover */}
         <div className="relative">
           {showReactions && (
@@ -459,6 +547,7 @@ export function CallRoom({ code, name, stream, micOn: initialMicOn, camOn: initi
             onClick={() => {
               call.sendHeart();
               setShowReactions((v) => !v);
+              setShowFilters(false);
             }}
             aria-label="Send reaction"
           >
