@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Cozy Connect
+
+i want to make one syste like google meet fro video chat online for free... unlimited time . can we make it for free to chant with gf .. as i am having some preivacy secure thats why i want to crete that and too much properbles .. make it erpfecct and best so that sjhe can join easliy .. need all basic fetures .. like chat , vieo , audio , screen share , notepad , cozy , romantic , couple vible ,,,,.. best and next gen level edton ..
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://cozy-connect-49.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/8b517e79-c9ff-4800-bcda-febe21aa33f4).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
