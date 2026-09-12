@@ -108,6 +108,8 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     let currentPeer: Peer | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     let pingInterval: ReturnType<typeof setInterval> | null = null;
+    let retryAttempts = 0;
+    const MAX_RETRIES = 5;
     const hostId = `lovenest-${code}-host`;
 
     const setPeerStatus = (s: CallStatus) => {
@@ -122,9 +124,9 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
       connRef.current = null;
       callRef.current = null;
       if (pingInterval) clearInterval(pingInterval);
-      if (role === "guest") {
+      if (role === "guest" && !cancelled && !endedRef.current) {
         currentPeer?.destroy();
-        retryTimer = setTimeout(becomeHost, 1200);
+        retryTimer = setTimeout(becomeHost, 1500);
       } else {
         setPeerStatus("waiting");
       }
@@ -143,6 +145,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     const attachData = (conn: DataConnection, role: "host" | "guest", p: Peer) => {
       connRef.current = conn;
       conn.on("open", () => {
+        retryAttempts = 0;
         const s = stateRef.current;
         const msg: Wire = {
           t: "hello",
@@ -217,6 +220,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
       currentPeer = p;
       peerRef.current = p;
       p.on("open", () => {
+        retryAttempts = 0;
         if (role === "host") {
           setPeerStatus("waiting");
         } else {
@@ -237,28 +241,45 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
       });
       p.on("error", (err) => {
         const type = (err as { type?: string }).type;
+
+        if (cancelled || endedRef.current) return;
+
         if (type === "unavailable-id" && role === "host") {
           p.destroy();
           becomeGuest();
           return;
         }
+
         if (type === "peer-unavailable" && role === "guest") {
           p.destroy();
-          retryTimer = setTimeout(becomeHost, 800);
+          if (retryAttempts < MAX_RETRIES) {
+            retryAttempts++;
+            const backoff = Math.min(2000 * retryAttempts, 8000);
+            retryTimer = setTimeout(becomeHost, backoff);
+          } else {
+            setError("Partner is not online yet. Share the invite link with her.");
+            setPeerStatus("waiting");
+          }
           return;
         }
+
         if (
           type === "network" ||
           type === "server-error" ||
           type === "socket-error" ||
           type === "socket-closed"
         ) {
-          setError("Couldn't reach the connection service. Check your internet and try again.");
-          setPeerStatus("error");
+          if (retryAttempts < MAX_RETRIES) {
+            retryAttempts++;
+            retryTimer = setTimeout(role === "host" ? becomeHost : becomeGuest, 3000);
+          } else {
+            setError("Couldn't reach connection service. Check internet and refresh.");
+            setPeerStatus("error");
+          }
         }
       });
       p.on("disconnected", () => {
-        if (!p.destroyed && !cancelled) {
+        if (!p.destroyed && !cancelled && !endedRef.current) {
           try {
             p.reconnect();
           } catch {
@@ -269,17 +290,17 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     };
 
     async function becomeHost() {
-      if (cancelled) return;
+      if (cancelled || endedRef.current) return;
       const { default: PeerCtor } = await import("peerjs");
-      if (cancelled) return;
+      if (cancelled || endedRef.current) return;
       setPeerStatus("connecting");
       bind(new PeerCtor(hostId, { config: { iceServers: ICE_SERVERS } }), "host");
     }
 
     async function becomeGuest() {
-      if (cancelled) return;
+      if (cancelled || endedRef.current) return;
       const { default: PeerCtor } = await import("peerjs");
-      if (cancelled) return;
+      if (cancelled || endedRef.current) return;
       setPeerStatus("connecting");
       bind(new PeerCtor({ config: { iceServers: ICE_SERVERS } }), "guest");
     }

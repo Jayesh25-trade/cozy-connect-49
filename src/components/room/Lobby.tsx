@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, Copy, Heart, Mic, MicOff, Video, VideoOff } from "lucide-react";
+import { Check, Copy, Heart, Mic, MicOff, User, Video, VideoOff, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { prettyRoomCode } from "@/lib/room-codes";
@@ -66,7 +66,9 @@ export function Lobby({ code, onJoin }: Props) {
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
-      videoRef.current.play().catch(() => {});
+      if (stream) {
+        videoRef.current.play().catch(() => {});
+      }
     }
   }, [stream]);
 
@@ -157,16 +159,42 @@ export function Lobby({ code, onJoin }: Props) {
             </p>
           </div>
 
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-semibold">What should she see you as?</span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && join()}
-              placeholder="Your name"
-              maxLength={24}
-              className="h-12 w-full rounded-2xl bg-input/60 px-4 text-base outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring"
-            />
+          <label className="block space-y-2">
+            <span className="block text-sm font-semibold text-foreground">
+              What should she see you as?
+            </span>
+            <div className="relative flex items-center">
+              <User className="absolute left-4 size-5 text-muted-foreground pointer-events-none" />
+              <input
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem("lovenest-name", e.target.value);
+                  }
+                }}
+                onKeyDown={(e) => e.key === "Enter" && join()}
+                placeholder="Enter your name"
+                maxLength={24}
+                autoFocus
+                className="h-13 w-full rounded-2xl border border-primary/30 bg-background/90 pl-11 pr-10 text-base font-medium text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/20"
+              />
+              {name && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setName("");
+                    if (typeof window !== "undefined") {
+                      window.localStorage.removeItem("lovenest-name");
+                    }
+                  }}
+                  className="absolute right-3.5 text-muted-foreground hover:text-foreground p-1"
+                  aria-label="Clear name"
+                >
+                  <X className="size-4" />
+                </button>
+              )}
+            </div>
           </label>
 
           <div className="space-y-3">
