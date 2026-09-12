@@ -26,8 +26,12 @@ export function Lobby({ code, onJoin }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem("lovenest-name");
-    if (saved) setName(saved);
+    try {
+      const saved = window.localStorage.getItem("lovenest-name");
+      setName(saved || "Me");
+    } catch {
+      setName("Me");
+    }
   }, []);
 
   useEffect(() => {
@@ -188,16 +192,13 @@ export function Lobby({ code, onJoin }: Props) {
                 id="guest-name-input"
                 type="text"
                 value={name}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setName(val);
+                onChange={(e) => setName(e.target.value)}
+                onBlur={(e) => {
                   try {
                     if (typeof window !== "undefined") {
-                      window.localStorage.setItem("lovenest-name", val);
+                      window.localStorage.setItem("lovenest-name", e.target.value.trim());
                     }
-                  } catch {
-                    // Ignore storage quota/permission exceptions
-                  }
+                  } catch {}
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
