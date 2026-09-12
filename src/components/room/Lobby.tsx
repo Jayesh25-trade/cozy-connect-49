@@ -38,20 +38,32 @@ export function Lobby({ code, onJoin }: Props) {
         setMediaError("This browser can't access a camera. You can still join for chat.");
         return;
       }
+
+      const timeoutId = setTimeout(() => {
+        if (active && !s) {
+          setMediaError("Camera permission waiting or not granted — click Join to enter room.");
+        }
+      }, 4000);
+
       try {
         s = await navigator.mediaDevices.getUserMedia({
-          video: { width: { max: 1280, ideal: 1280 }, height: { max: 720, ideal: 720 }, frameRate: { max: 30, ideal: 30 }, facingMode: "user" },
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         });
       } catch {
         try {
-          s = await navigator.mediaDevices.getUserMedia({ audio: true });
-          setCamOn(false);
-          setMediaError("Camera not available — joining with voice only.");
+          s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         } catch {
-          setMediaError("Couldn't access camera or mic. Allow permission, or join for chat only.");
+          try {
+            s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setCamOn(false);
+            setMediaError("Camera not available — joining with voice only.");
+          } catch {
+            setMediaError("Couldn't access camera or mic. Click Join to enter for text chat.");
+          }
         }
       }
+      clearTimeout(timeoutId);
       if (!active) {
         s?.getTracks().forEach((t) => t.stop());
         return;
@@ -137,18 +149,16 @@ export function Lobby({ code, onJoin }: Props) {
               size="control"
               onClick={() => setMicOn((v) => !v)}
               aria-label={micOn ? "Mute mic" : "Unmute mic"}
-              disabled={!stream}
             >
               {micOn ? <Mic /> : <MicOff />}
             </Button>
             <Button
-              variant={camOn && hasVideo ? "control" : "controlOff"}
+              variant={camOn ? "control" : "controlOff"}
               size="control"
               onClick={() => setCamOn((v) => !v)}
               aria-label={camOn ? "Turn camera off" : "Turn camera on"}
-              disabled={!hasVideo}
             >
-              {camOn && hasVideo ? <Video /> : <VideoOff />}
+              {camOn ? <Video /> : <VideoOff />}
             </Button>
           </div>
         </div>
