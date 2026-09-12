@@ -7,11 +7,14 @@ import "./styles.css";
 const router = getRouter();
 
 const rootElement = document.getElementById("root");
-if (rootElement && !rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(
-    <React.StrictMode>
-      <RouterProvider router={router} />
-    </React.StrictMode>,
-  );
+if (rootElement) {
+  if (!rootElement.dataset["hydrated"]) {
+    rootElement.dataset["hydrated"] = "true";
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+      <React.StrictMode>
+        <RouterProvider router={router} />
+      </React.StrictMode>,
+    );
+  }
 }
