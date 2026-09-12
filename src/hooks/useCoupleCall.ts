@@ -33,10 +33,13 @@ type Wire =
   | { t: "bye" };
 
 const ICE_SERVERS: RTCIceServer[] = [
-  { urls: "stun:stun.cloudflare.com:3478" },
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
   { urls: "stun:stun2.l.google.com:19302" },
+  { urls: "stun:stun3.l.google.com:19302" },
+  { urls: "stun:stun4.l.google.com:19302" },
+  { urls: "stun:stun.cloudflare.com:3478" },
+  { urls: "stun:global.stun.twilio.com:3478" },
   {
     urls: "turn:openrelay.metered.ca:80",
     username: "openrelayproject",
@@ -48,6 +51,40 @@ const ICE_SERVERS: RTCIceServer[] = [
     credential: "openrelayproject",
   },
 ];
+
+/**
+ * Optimize WebRTC Peer Connection Senders to prevent video lag, stuttering, and buffer bloat
+ */
+function optimizePeerConnection(pc: RTCPeerConnection | undefined, isSharing = false) {
+  if (!pc) return;
+  try {
+    const senders = pc.getSenders();
+    senders.forEach((sender) => {
+      if (!sender.track) return;
+      const params = sender.getParameters();
+      if (!params.encodings || params.encodings.length === 0) {
+        params.encodings = [{}];
+      }
+      const enc = params.encodings[0];
+      if (!enc) return;
+
+      if (sender.track.kind === "video") {
+        // Cap video bitrate to prevent congestion: 2.5 Mbps for screen share, 1.5 Mbps for camera
+        enc.maxBitrate = isSharing ? 2500000 : 1500000;
+        enc.maxFramerate = 30;
+        // Maintain framerate over resolution to ensure 0 lag / stuttering
+        params.degradationPreference = "maintain-framerate";
+        sender.setParameters(params).catch(() => {});
+      } else if (sender.track.kind === "audio") {
+        // High quality clear audio (96 kbps)
+        enc.maxBitrate = 96000;
+        sender.setParameters(params).catch(() => {});
+      }
+    });
+  } catch {
+    /* ignore unsupported browser params */
+  }
+}
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
@@ -137,6 +174,10 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
       call.on("stream", (rs) => {
         setRemoteStream(rs);
       });
+      // Optimize peer connection encoding parameters to eliminate lag
+      setTimeout(() => {
+        optimizePeerConnection(call.peerConnection, false);
+      }, 500);
       call.on("error", () => {
         /* handled by data close */
       });
@@ -351,9 +392,11 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     screen.getTracks().forEach((t) => t.stop());
     screenStreamRef.current = null;
     const camTrack = stream?.getVideoTracks()[0] ?? null;
-    const senders = callRef.current?.peerConnection?.getSenders() ?? [];
+    const pc = callRef.current?.peerConnection;
+    const senders = pc?.getSenders() ?? [];
     const sender = senders.find((s) => s.track?.kind === "video" || (!s.track && camTrack));
     if (sender && camTrack) sender.replaceTrack(camTrack).catch(() => {});
+    optimizePeerConnection(pc, false);
     setPreviewStream(stream);
     stateRef.current.sharing = false;
     setSharing(false);
@@ -364,7 +407,14 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getDisplayMedia) {
       throw new Error("Screen sharing isn't supported on this device or browser.");
     }
-    const screen = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+    const screen = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        width: { max: 1920, ideal: 1280 },
+        height: { max: 1080, ideal: 720 },
+        frameRate: { max: 30, ideal: 30 },
+      },
+      audio: false,
+    });
     const track = screen.getVideoTracks()[0];
     if (!track) return;
     screenStreamRef.current = screen;
@@ -376,6 +426,7 @@ export function useCoupleCall({ code, name, stream, initialMicOn, initialCamOn }
     } else if (pc) {
       pc.addTrack(track, screen);
     }
+    optimizePeerConnection(pc, true);
     track.onended = () => stopShare();
     setPreviewStream(screen);
     stateRef.current.sharing = true;

@@ -40,7 +40,7 @@ export function Lobby({ code, onJoin }: Props) {
       }
       try {
         s = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
+          video: { width: { max: 1280, ideal: 1280 }, height: { max: 720, ideal: 720 }, frameRate: { max: 30, ideal: 30 }, facingMode: "user" },
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         });
       } catch {
@@ -113,7 +113,7 @@ export function Lobby({ code, onJoin }: Props) {
             autoPlay
             playsInline
             muted
-            className={cn("mirror h-full w-full object-cover", (!hasVideo || !camOn) && "hidden")}
+            className={cn("mirror h-full w-full object-contain", (!hasVideo || !camOn) && "hidden")}
           />
           {(!hasVideo || !camOn) && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">

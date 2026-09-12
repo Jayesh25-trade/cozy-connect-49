@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MicOff, VideoOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,7 @@ export function VideoTile({
   sticker = "none",
 }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -40,6 +41,40 @@ export function VideoTile({
     el.srcObject = stream;
     if (stream) el.play().catch(() => {});
   }, [stream]);
+
+  useEffect(() => {
+    if (!stream || !micOn || muted || stream.getAudioTracks().length === 0) {
+      setIsSpeaking(false);
+      return;
+    }
+    let animId: number;
+    let audioCtx: AudioContext | null = null;
+    try {
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioCtx = new AudioContextClass();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      const data = new Uint8Array(analyser.frequencyBinCount);
+
+      const check = () => {
+        analyser.getByteFrequencyData(data);
+        const sum = data.reduce((a, b) => a + b, 0);
+        const avg = sum / data.length;
+        setIsSpeaking(avg > 15);
+        animId = requestAnimationFrame(check);
+      };
+      check();
+    } catch {
+      /* ignore audio context errors */
+    }
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+      if (audioCtx) audioCtx.close().catch(() => {});
+    };
+  }, [stream, micOn, muted]);
 
   const hasVideo = !!stream && stream.getVideoTracks().length > 0 && camOn;
   const initial = (name || "?").trim().charAt(0).toUpperCase();
@@ -49,7 +84,8 @@ export function VideoTile({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-3xl bg-stage shadow-soft ring-1 ring-border",
+        "relative overflow-hidden rounded-3xl bg-stage shadow-soft ring-1 transition-all duration-300",
+        isSpeaking ? "ring-2 ring-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.4)]" : "ring-border",
         className,
       )}
     >
@@ -59,9 +95,8 @@ export function VideoTile({
         playsInline
         muted={muted}
         className={cn(
-          "h-full w-full object-cover transition-all duration-500",
+          "h-full w-full object-contain transition-all duration-500",
           mirrored && !sharing && "mirror",
-          sharing && "object-contain",
           !hasVideo && "opacity-0",
           filterClass,
         )}
@@ -125,11 +160,18 @@ export function VideoTile({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-stage/80 to-transparent p-3">
         <span
           className={cn(
-            "glass rounded-full px-3 py-1 font-medium",
+            "glass rounded-full px-3 py-1 font-medium flex items-center gap-2",
             size === "stage" ? "text-sm" : "text-xs",
           )}
         >
-          {name}
+          {isSpeaking && micOn && (
+            <span className="flex items-end gap-0.5 h-3">
+              <span className="w-0.5 bg-emerald-400 animate-pulse h-full" />
+              <span className="w-0.5 bg-emerald-400 animate-pulse h-2" />
+              <span className="w-0.5 bg-emerald-400 animate-pulse h-3" />
+            </span>
+          )}
+          <span>{name}</span>
           {sharing ? " · sharing screen" : ""}
           {filter !== "none" ? ` · ${filter}` : ""}
         </span>

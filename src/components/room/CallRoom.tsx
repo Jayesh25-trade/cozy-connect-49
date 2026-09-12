@@ -257,8 +257,18 @@ export function CallRoom({ code, name, stream, micOn: initialMicOn, camOn: initi
           <span className="font-medium">{statusLabel}</span>
           {connected && <span className="tabular-nums text-muted-foreground">· {elapsed}</span>}
           {connected && call.latencyMs !== null && (
-            <span className="hidden text-xs text-muted-foreground sm:inline-flex items-center gap-1">
-              · <Wifi className="size-3" /> {call.latencyMs}ms
+            <span
+              className={cn(
+                "hidden text-xs sm:inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full",
+                call.latencyMs < 100
+                  ? "text-emerald-400 bg-emerald-500/10"
+                  : call.latencyMs < 250
+                    ? "text-amber-400 bg-amber-500/10"
+                    : "text-rose-400 bg-rose-500/10",
+              )}
+              title={`Connection latency: ${call.latencyMs}ms`}
+            >
+              <Wifi className="size-3" /> {call.latencyMs}ms
             </span>
           )}
           <span className="hidden text-muted-foreground md:inline">· {prettyRoomCode(code)}</span>
