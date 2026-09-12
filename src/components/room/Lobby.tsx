@@ -159,33 +159,50 @@ export function Lobby({ code, onJoin }: Props) {
             </p>
           </div>
 
-          <label className="block space-y-2">
-            <span className="block text-sm font-semibold text-foreground">
+          <div className="space-y-2">
+            <label htmlFor="guest-name-input" className="block text-sm font-semibold text-foreground">
               What should she see you as?
-            </span>
+            </label>
             <div className="relative flex items-center">
               <User className="absolute left-4 size-5 text-muted-foreground pointer-events-none" />
               <input
+                id="guest-name-input"
+                type="text"
                 value={name}
                 onChange={(e) => {
-                  setName(e.target.value);
-                  if (typeof window !== "undefined") {
-                    window.localStorage.setItem("lovenest-name", e.target.value);
+                  const val = e.target.value;
+                  setName(val);
+                  try {
+                    if (typeof window !== "undefined") {
+                      window.localStorage.setItem("lovenest-name", val);
+                    }
+                  } catch {
+                    // Ignore storage quota/permission exceptions
                   }
                 }}
-                onKeyDown={(e) => e.key === "Enter" && join()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    join();
+                  }
+                }}
                 placeholder="Enter your name"
                 maxLength={24}
-                autoFocus
                 className="h-13 w-full rounded-2xl border border-primary/30 bg-background/90 pl-11 pr-10 text-base font-medium text-foreground outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/20"
               />
               {name && (
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     setName("");
-                    if (typeof window !== "undefined") {
-                      window.localStorage.removeItem("lovenest-name");
+                    try {
+                      if (typeof window !== "undefined") {
+                        window.localStorage.removeItem("lovenest-name");
+                      }
+                    } catch {
+                      // Ignore storage quota/permission exceptions
                     }
                   }}
                   className="absolute right-3.5 text-muted-foreground hover:text-foreground p-1"
@@ -195,7 +212,7 @@ export function Lobby({ code, onJoin }: Props) {
                 </button>
               )}
             </div>
-          </label>
+          </div>
 
           <div className="space-y-3">
             <Button variant="hero" size="xl" className="w-full" onClick={join}>
